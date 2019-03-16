@@ -2,14 +2,8 @@ package com.example.study.controller.jersey;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.example.study.dao.OrganizationMapper;
-import com.example.study.dao.TaskMapper;
-import com.example.study.dao.UserMapper;
-import com.example.study.dao.WorkerMapper;
-import com.example.study.dataobject.Organization;
-import com.example.study.dataobject.Task;
-import com.example.study.dataobject.User;
-import com.example.study.dataobject.Worker;
+import com.example.study.dao.*;
+import com.example.study.dataobject.*;
 import com.example.study.service.UserService;
 import com.example.study.util.HttpUtils;
 import org.apache.http.HttpEntity;
@@ -40,6 +34,10 @@ public class UserResource {
     private TaskMapper taskMapper;
     @Autowired
     private OrganizationMapper organizationMapper;
+    @Autowired
+    private TemporaryMapper temporaryMapper;
+    @Autowired
+    private ReceiverMapper receiverMapper;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -110,6 +108,8 @@ public class UserResource {
         jsonObject.put("isTask",isTask);
         return JSONObject.toJSONString(jsonObject);
     }
+
+
     @POST
     @Path("/submit")
     @Consumes("application/x-www-form-urlencoded")
@@ -121,51 +121,174 @@ public class UserResource {
                          @FormParam("eventLatitude")String eventLatitude,
                          @FormParam("eventLongitude")String eventLongitude,
                          @FormParam("type")String type){
+
+        // 由于服务器数据库可能无该机构信息，为方便测试，插入提交的机构
         Organization organization1 = new Organization();
         organization1.setOrganization(organization);
         organization1.setLatitude(organizationLatitude);
         organization1.setLongitude(organizationLongitude);
+        organization1.setTel("150****5530");
+        organization1.setAddress(organization);
         organizationMapper.insert(organization1);
-        System.out.println("i:"+organization1.getOrganizationId());
+        //System.out.println("i:"+organization1.getOrganizationId());
+
+        // 由于该机构是新建的测试机构，所以需要插入测试工作人员
+        Worker worker = new Worker();
+        worker.setOpenid("worker"+organization1.getOrganizationId());
+        worker.setIsTask(new Byte("1"));
+        worker.setOrganizationId(organization1.getOrganizationId());
+        worker.setTel("test1505573");
+        worker.setName("测试Worker"+organization1.getOrganizationId());
+        worker.setJob(type);
+
+
+        // 理由同上，插入测试接警员
+        Receiver receiver = new Receiver();
+        receiver.setTel("150****5530");
+        receiver.setName("接警员");
+        receiver.setOrganizationId(organization1.getOrganizationId());
+        receiver.setJob(type);
+        receiverMapper.insert(receiver);
+
+
+
+        // 创建订单
         Task task = new Task();
         task.setOpenid(openid);
         task.setEventLocation(eventLocation);
+        task.setEventAddress(eventLocation);
         task.setEventLatitude(eventLatitude);
         task.setEventLongitude(eventLongitude);
         task.setType(type);
         task.setOrganizationId(organization1.getOrganizationId());
-        int j = taskMapper.query(openid).get(taskMapper.query(openid).size()-1);
-        System.out.println("j:"+j);
+
+        task.setReceiverId(receiver.getReceiverId().intValue());
+
+
+
+        // 发送订单给接警员，等待接警员确认调度，若成功则向下执行，失败给出回执。
+
+        // 模拟接警员给出的调度信息，如人数
+        task.setNumberPeople(new Byte("3"));
+
+
+        taskMapper.insert(task);
+        // 这里默认接警员已确认调度
+
+        worker.setTaskId(task.getTaskId().intValue());
+        //worker.setImage("");
+        workerMapper.insert(worker);
+
+
+        // 查看是否有该用户，没有则创建
         User user = userMapper.selectByPrimaryKey(openid);
         if(user == null){
             user.setOpenid(openid);
+            // 新建用户同时将状态置“1”
             user.setIsTask(new Byte("1"));
-            user.setTaskId(j);
+            user.setTaskId(task.getTaskId().intValue());
             userMapper.insert(user);
         } else {
+            // 将已有用户状态改为1
             user.setIsTask(new Byte("1"));
-            user.setTaskId(j);
+            user.setTaskId(task.getTaskId().intValue());
             userMapper.updateByPrimaryKey(user);
         }
 
-
-        System.out.println("/submit"+openid);
-        return "";
+        return "请求成功";
     }
 
+
+    /**
+     * 用户更新定位
+     * 获取救援方定位
+     * 获取时间与距离
+     */
     @POST
     @Path("/userUpdateLocation")
     @Consumes("application/x-www-form-urlencoded")
+    @Produces("application/json")
     public String userUpdateLocation(@FormParam("openid")String openid,
-                                     @FormParam("latitude")String latitude,@FormParam("longitude")String eventLongitude){
-        System.out.println("定位"+latitude+latitude);
-        return "ok";
-    }
-    @GET
-    @Path("/updateWorkerLocation")
-    public String updateWorkerLocation(){
+                                     @FormParam("otherOpenid")String otherOpenid,
+                                     @FormParam("latitude")String latitude,@FormParam("longitude")String longitude){
+        System.out.println("用户定位"+latitude+latitude);
 
-        return "";
+        Temporary userTemporary = new Temporary();
+        userTemporary.setOpenid(openid);
+        userTemporary.setLatitude(latitude);
+        userTemporary.setLongitude(longitude);
+        if(temporaryMapper.selectByPrimaryKey(openid) == null){
+            temporaryMapper.insert(userTemporary);
+        } else {
+            temporaryMapper.updateByPrimaryKey(userTemporary);
+        }
+
+
+        // 从表里获取救援方定位
+        Temporary temporary = temporaryMapper.selectByPrimaryKey(otherOpenid);
+        JSONObject jsonObject = new JSONObject();
+        if(temporary == null) {
+
+            jsonObject.put("latitude","");
+            jsonObject.put("longitude","");
+            jsonObject.put("time","5");
+            jsonObject.put("distance","1234");
+            // 此时对方未开启定位，默认填写机构
+            Worker worker = workerMapper.selectByPrimaryKey(otherOpenid);
+            if(worker != null){
+                Organization organization = organizationMapper.selectByPrimaryKey(worker.getOrganizationId());
+                if(organization != null) {
+                    jsonObject.put("latitude",organization.getLatitude());
+                    jsonObject.put("longitude",organization.getLongitude());
+                }
+            }
+            return jsonObject.toJSONString();
+        }
+
+        jsonObject.put("latitude",temporary.getLatitude());
+        jsonObject.put("longitude",temporary.getLongitude());
+        jsonObject.put("time","5");
+        jsonObject.put("distance","1234");
+        return jsonObject.toJSONString();
+    }
+
+    @POST
+    @Path("/workerUpdateLocation")
+    @Consumes("application/x-www-form-urlencoded")
+    @Produces("application/json")
+    public String workerUpdateLocation(@FormParam("openid")String openid,
+                                       @FormParam("otherOpenid")String otherOpenid,
+                                       @FormParam("latitude")String latitude,@FormParam("longitude")String longitude,
+                                       @FormParam("toLatitude")String toLatitude,@FormParam("toLongitude")String toLongitude){
+
+        System.out.println("工作人员定位"+latitude+latitude);
+        String key = "PTVBZ-O3734-C6SUY-XFJS3-DJ3GV-Y3FTY";
+        String urlHead = "https://apis.map.qq.com/ws/direction/v1/driving/";
+        String from = latitude + "," + longitude;
+        // 取得事故定位
+        String to = toLatitude + "," + toLongitude;
+        String url =  urlHead+"?from="+from+"&to="+to+"&key="+key;
+
+        //直接返回导航信息
+        JSONObject object = null;
+        try {
+            HttpResponse response =  HttpUtils.doGet(url,"","GET",new HashMap<String,String>(),new HashMap<String,String>());
+            //System.out.println(response.toString());
+            //获取response的body
+            String body = EntityUtils.toString(response.getEntity());
+            System.out.println("body"+body);
+            object = JSON.parseObject(body);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // 返回用户定位
+        Temporary temporary = temporaryMapper.selectByPrimaryKey(otherOpenid);
+        object.put("latitude",temporary.getLatitude());
+        object.put("longitude",temporary.getLongitude());
+
+        return object.toJSONString();
+
     }
 
     @GET
@@ -188,9 +311,16 @@ public class UserResource {
 
         } else {
             //获取救援方姓名，救援方电话，救援方人数,任务类型，事故地点，事故坐标
+            // 获取自身实体类
             user = userMapper.selectByPrimaryKey(openid);
+            // 根据自身所属任务id获取task任务对象
             task = taskMapper.selectByPrimaryKey(user.getTaskId().longValue());
-            worker = workerMapper.selectByPrimaryKey("worker_1");
+            // 根据task_id从Worker表获取worker_id
+            System.out.println("taskId"+task.getTaskId().toString());
+            String workerId = workerMapper.queryByTaskId(task.getTaskId());
+            System.out.println("workerId"+workerId);
+            worker = workerMapper.selectByPrimaryKey(workerId);
+            jsonObject.put("otherOpenid",worker.getOpenid());
             jsonObject.put("name",worker.getName());
             jsonObject.put("tel",worker.getTel());
             jsonObject.put("image",worker.getImage());

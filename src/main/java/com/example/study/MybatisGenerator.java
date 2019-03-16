@@ -55,8 +55,10 @@ public class MybatisGenerator {
     // 要生成的表名
    // properties.setProperty("tableName","user");
     //properties.setProperty("tableName","worker");
-   properties.setProperty("tableName","task");
+   //properties.setProperty("tableName","temporary");
     //properties.setProperty("tableName","organization");
+    properties.setProperty("tableName","receiver");
+
     return properties;
   }
 }

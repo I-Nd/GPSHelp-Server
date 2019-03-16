@@ -9,6 +9,11 @@ import java.util.List;
  */
 public class TaskSqlBuild {
 
+    /**
+     * openid 求救者id
+     *
+     * 根据求救者id获取任务id
+     */
     public String buildQueryTask(String openid){
         return new SQL(){
             {
