@@ -17,6 +17,12 @@ public interface RescuerService {
     String getTaskId(String openId);
 
     /**
+     * 获取救援人员当前任务
+     * @param openId 救援人员openId
+     */
+    String setTaskId(String openId, String taskId);
+
+    /**
      * 救援人员注册
      * @param unitId 救援单位编号
      * @param unitKey 救援单位密钥
@@ -34,4 +40,10 @@ public interface RescuerService {
      * @param status 待修改的救援人员状态
      */
     int changeStatus(String openId, String status);
+
+    /**
+     * 任务结束后释放所有救援人员状态
+     * @param taskId 任务Id
+     */
+    String releaseRescuer(String taskId);
 }

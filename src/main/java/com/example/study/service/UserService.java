@@ -15,4 +15,10 @@ public interface UserService {
      * @param openId 用户openId
      */
     int imUserRegister(String openId);
+
+    /**
+     * 任务结束后释放用户状态
+     * @param taskId 任务Id
+     */
+    String releaseUser(String taskId);
 }

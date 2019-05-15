@@ -61,5 +61,15 @@ public class UserServiceImpl implements UserService {
         logger.debug("IM account:" + account);
         return imService.userRegister(account, account);
     }
+
+    @Override
+    public String releaseUser(String taskId) {
+        User user = userMapper.selectByTaskId(taskId);
+        if(user != null){
+            user.setTaskId(null);
+            userMapper.updateByPrimaryKey(user);
+        }
+        return null;
+    }
 }
 

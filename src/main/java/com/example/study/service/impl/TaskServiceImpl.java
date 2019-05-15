@@ -8,6 +8,7 @@ import com.example.study.mapper.RescuerMapper;
 import com.example.study.mapper.TaskMapper;
 import com.example.study.mapper.UserMapper;
 import com.example.study.service.IMService;
+import com.example.study.service.RescuerService;
 import com.example.study.service.TaskService;
 
 import java.util.*;
@@ -15,6 +16,7 @@ import java.util.*;
 import com.example.study.object.Task;
 import com.example.study.object.User;
 import com.example.study.object.Rescuer;
+import com.example.study.service.UserService;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -47,6 +49,12 @@ public class TaskServiceImpl implements TaskService {
 
     @Autowired
     IMService imService;
+
+    @Autowired
+    RescuerService rescuerService;
+
+    @Autowired
+    UserService userService;
 
     @Autowired
     private RedisTemplate redisTemplate;
@@ -124,6 +132,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public String imGroupAddRescuer(String taskId, String openId) {
+        rescuerService.setTaskId(openId, taskId);
         final Base64.Encoder encoder = Base64.getEncoder();
         String user = encoder.encodeToString(openId.getBytes()).replace("=","");
         Task task = taskMapper.selectByPrimaryKey(taskId);
@@ -139,7 +148,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public void setRescuerLocation(String taskId, String Coordinate, String openId) {
         Task task = taskMapper.selectByPrimaryKey(taskId);
-        if(task.getRescuerOpenId().equals(openId)){
+        if(task != null && task.getRescuerOpenId().equals(openId)){
             ValueOperations<String, String> operations = redisTemplate.opsForValue();
             ClientResponse response = null;
             int status = 0;
@@ -213,6 +222,8 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public String endTask(String taskId) {
+        rescuerService.releaseRescuer(taskId);
+        userService.releaseUser(taskId);
         Task task = taskMapper.selectByPrimaryKey(taskId);
         task.setStatus("已完结");
         taskMapper.updateByPrimaryKey(task);

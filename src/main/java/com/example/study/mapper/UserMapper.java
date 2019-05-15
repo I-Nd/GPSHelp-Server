@@ -98,4 +98,20 @@ public interface UserMapper {
         "where open_id = #{openId,jdbcType=VARCHAR}"
     })
     int updateByPrimaryKey(User record);
+
+    @Select({
+            "select",
+            "open_id, first_login, last_login, name, phone, task_id",
+            "from user",
+            "where task_id = #{taskId,jdbcType=VARCHAR}"
+    })
+    @Results({
+            @Result(column="open_id", property="openId", jdbcType=JdbcType.VARCHAR, id=true),
+            @Result(column="first_login", property="firstLogin", jdbcType=JdbcType.TIMESTAMP),
+            @Result(column="last_login", property="lastLogin", jdbcType=JdbcType.TIMESTAMP),
+            @Result(column="name", property="name", jdbcType=JdbcType.VARCHAR),
+            @Result(column="phone", property="phone", jdbcType=JdbcType.VARCHAR),
+            @Result(column="task_id", property="taskId", jdbcType=JdbcType.VARCHAR)
+    })
+    User selectByTaskId(String taskId);
 }
