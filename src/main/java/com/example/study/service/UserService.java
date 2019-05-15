@@ -1,14 +1,18 @@
 package com.example.study.service;
 
 
-
-import com.example.study.dataobject.User;
-
-import java.util.List;
-
-/**
- * Created by lenovo on 2018/12/25.
- */
 public interface UserService {
-    List<User> getAllUser();
+
+    /**
+     * 用户登录
+     * 新用户注册IM并存入数据库，老用户更新登陆时间
+     * @param openId 用户openId
+     */
+    String userLogin(String openId);
+
+    /**
+     * 新用户注册IM
+     * @param openId 用户openId
+     */
+    int imUserRegister(String openId);
 }

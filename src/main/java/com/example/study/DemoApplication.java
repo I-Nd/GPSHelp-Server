@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @SpringBootApplication
 @EnableTransactionManagement   //开启事务管理
 @ComponentScan("com.example.study")
-@MapperScan("com.example.study.dao")//与dao层的@Mapper二选一写上即可(主要作用是扫包)
+@MapperScan("com.example.study.mapper")//与mapper层的@Mapper二选一写上即可(主要作用是扫包)
 public class DemoApplication {
 	private final static Logger logger = LoggerFactory.getLogger(DemoApplication.class);
 	public static void main(String[] args) {
