@@ -39,22 +39,22 @@ public class TaskServiceImpl implements TaskService {
     private final static Logger logger = LoggerFactory.getLogger(TaskServiceImpl.class);
 
     @Autowired
-    TaskMapper taskMapper;
+    private TaskMapper taskMapper;
 
     @Autowired
-    UserMapper userMapper;
+    private UserMapper userMapper;
 
     @Autowired
-    RescuerMapper rescuerMapper;
+    private RescuerMapper rescuerMapper;
 
     @Autowired
-    IMService imService;
+    private IMService imService;
 
     @Autowired
-    RescuerService rescuerService;
+    private RescuerService rescuerService;
 
     @Autowired
-    UserService userService;
+    private UserService userService;
 
     @Autowired
     private RedisTemplate redisTemplate;
@@ -232,6 +232,20 @@ public class TaskServiceImpl implements TaskService {
             return "操作成功！";
         }else{
             return "操作失败！";
+        }
+    }
+
+    @Override
+    public int setReceiver(String taskId, String receiverId) {
+        Task task = taskMapper.selectByPrimaryKey(taskId);
+        if(task == null){
+            return 1;
+        }else if (task.getReceiverId() == null){
+            task.setReceiverId(receiverId);
+            taskMapper.updateByPrimaryKey(task);
+            return 0;
+        }else{
+            return -1;
         }
     }
 }

@@ -112,4 +112,42 @@ public interface ReceiverMapper {
           "and id = #{id,jdbcType=VARCHAR}"
     })
     int updateByPrimaryKey(Receiver record);
+
+    @Select({
+            "select",
+            "unit_id, id, name, gender, phone, account_name, account_password, status, task_id",
+            "from receiver",
+            "where account_name = #{accountName,jdbcType=VARCHAR}"
+    })
+    @Results({
+            @Result(column="unit_id", property="unitId", jdbcType=JdbcType.VARCHAR, id=true),
+            @Result(column="id", property="id", jdbcType=JdbcType.VARCHAR, id=true),
+            @Result(column="name", property="name", jdbcType=JdbcType.VARCHAR),
+            @Result(column="gender", property="gender", jdbcType=JdbcType.VARCHAR),
+            @Result(column="phone", property="phone", jdbcType=JdbcType.VARCHAR),
+            @Result(column="account_name", property="accountName", jdbcType=JdbcType.VARCHAR),
+            @Result(column="account_password", property="accountPassword", jdbcType=JdbcType.VARCHAR),
+            @Result(column="status", property="status", jdbcType=JdbcType.VARCHAR),
+            @Result(column="task_id", property="taskId", jdbcType=JdbcType.VARCHAR)
+    })
+    Receiver selectByAccount(@Param("accountName") String accountName);
+
+    @Select({
+            "select",
+            "unit_id, id, name, gender, phone, account_name, account_password, status, task_id",
+            "from receiver",
+            "where id = #{id,jdbcType=VARCHAR}"
+    })
+    @Results({
+            @Result(column="unit_id", property="unitId", jdbcType=JdbcType.VARCHAR, id=true),
+            @Result(column="id", property="id", jdbcType=JdbcType.VARCHAR, id=true),
+            @Result(column="name", property="name", jdbcType=JdbcType.VARCHAR),
+            @Result(column="gender", property="gender", jdbcType=JdbcType.VARCHAR),
+            @Result(column="phone", property="phone", jdbcType=JdbcType.VARCHAR),
+            @Result(column="account_name", property="accountName", jdbcType=JdbcType.VARCHAR),
+            @Result(column="account_password", property="accountPassword", jdbcType=JdbcType.VARCHAR),
+            @Result(column="status", property="status", jdbcType=JdbcType.VARCHAR),
+            @Result(column="task_id", property="taskId", jdbcType=JdbcType.VARCHAR)
+    })
+    Receiver selectById(@Param("id") String id);
 }

@@ -2,12 +2,8 @@ package com.example.study.mapper;
 
 import com.example.study.object.Task;
 import java.util.List;
-import org.apache.ibatis.annotations.Delete;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Result;
-import org.apache.ibatis.annotations.Results;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+
+import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
 
 public interface TaskMapper {
@@ -150,4 +146,30 @@ public interface TaskMapper {
             @Result(column="aid_route", property="aidRoute", jdbcType=JdbcType.LONGVARCHAR)
     })
     Task selectByOpenId(String OpenId);
+
+    @Select({
+            "select",
+            "id, status, type, user_open_id, rescuer_open_id, chat_group_id, receiver_id, ",
+            "event_location_name, event_location_coordinate, aid_location_name, aid_location_coordinate, ",
+            "aid_route",
+            "from task",
+            "where (status = '受理中' or status = '进行中') ",
+            "and (receiver_id = #{receiverId,jdbcType=VARCHAR} or receiver_id is null)",
+            "and type = #{type,jdbcType=VARCHAR}"
+    })
+    @Results({
+            @Result(column="id", property="id", jdbcType=JdbcType.VARCHAR, id=true),
+            @Result(column="status", property="status", jdbcType=JdbcType.VARCHAR),
+            @Result(column="type", property="type", jdbcType=JdbcType.VARCHAR),
+            @Result(column="user_open_id", property="userOpenId", jdbcType=JdbcType.VARCHAR),
+            @Result(column="rescuer_open_id", property="rescuerOpenId", jdbcType=JdbcType.VARCHAR),
+            @Result(column="chat_group_id", property="chatGroupId", jdbcType=JdbcType.VARCHAR),
+            @Result(column="receiver_id", property="receiverId", jdbcType=JdbcType.VARCHAR),
+            @Result(column="event_location_name", property="eventLocationName", jdbcType=JdbcType.VARCHAR),
+            @Result(column="event_location_coordinate", property="eventLocationCoordinate", jdbcType=JdbcType.VARCHAR),
+            @Result(column="aid_location_name", property="aidLocationName", jdbcType=JdbcType.VARCHAR),
+            @Result(column="aid_location_coordinate", property="aidLocationCoordinate", jdbcType=JdbcType.VARCHAR),
+            @Result(column="aid_route", property="aidRoute", jdbcType=JdbcType.LONGVARCHAR)
+    })
+    List<Task> selectReceiverTasks(@Param("type")String type, @Param("receiverId")String receiverId);
 }

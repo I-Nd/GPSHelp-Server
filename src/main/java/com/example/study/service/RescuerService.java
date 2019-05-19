@@ -1,5 +1,6 @@
 package com.example.study.service;
 
+import java.util.List;
 import java.util.Map;
 
 public interface RescuerService {
@@ -46,4 +47,6 @@ public interface RescuerService {
      * @param taskId 任务Id
      */
     String releaseRescuer(String taskId);
+
+    List getFreeRescuer();
 }

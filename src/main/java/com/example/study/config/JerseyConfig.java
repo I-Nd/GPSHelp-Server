@@ -1,4 +1,4 @@
-package com.example.study;
+package com.example.study.config;
 
 import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.stereotype.Component;

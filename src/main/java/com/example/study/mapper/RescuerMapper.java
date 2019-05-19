@@ -151,4 +151,23 @@ public interface RescuerMapper {
             @Result(column="task_id", property="taskId", jdbcType=JdbcType.VARCHAR)
     })
     List<Rescuer> selectByTaskId(@Param("taskId") String taskId);
+
+    @Select({
+            "select",
+            "unit_id, id, name, gender, phone, open_id, avater, status, task_id",
+            "from rescuer",
+            "where status = '在线' and task_id is null"
+    })
+    @Results({
+            @Result(column="unit_id", property="unitId", jdbcType=JdbcType.VARCHAR, id=true),
+            @Result(column="id", property="id", jdbcType=JdbcType.VARCHAR, id=true),
+            @Result(column="name", property="name", jdbcType=JdbcType.VARCHAR),
+            @Result(column="gender", property="gender", jdbcType=JdbcType.VARCHAR),
+            @Result(column="phone", property="phone", jdbcType=JdbcType.VARCHAR),
+            @Result(column="open_id", property="openId", jdbcType=JdbcType.VARCHAR),
+            @Result(column="avater", property="avater", jdbcType=JdbcType.VARCHAR),
+            @Result(column="status", property="status", jdbcType=JdbcType.VARCHAR),
+            @Result(column="task_id", property="taskId", jdbcType=JdbcType.VARCHAR)
+    })
+    List<Rescuer> selectFreeRescuer();
 }

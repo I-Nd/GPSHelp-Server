@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -82,5 +84,20 @@ public class RescuerServiceImpl implements RescuerService {
             rescuerMapper.updateByPrimaryKey(rescuer);
         }
         return null;
+    }
+
+    @Override
+    public List getFreeRescuer() {
+        List<Rescuer> rescuers = rescuerMapper.selectFreeRescuer();
+        List rescuerList = new ArrayList();
+        for(Rescuer rescuer: rescuers){
+            Unit unit = unitMapper.selectByPrimaryKey(rescuer.getUnitId());
+            Map rescuerInfo = new HashMap();
+            rescuerInfo.put("rescuerId", rescuer.getId());
+            rescuerInfo.put("rescuerName", rescuer.getName());
+            rescuerInfo.put("rescuerUnit", unit.getName());
+            rescuerList.add(rescuerInfo);
+        }
+        return rescuerList;
     }
 }

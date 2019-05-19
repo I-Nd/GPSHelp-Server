@@ -29,10 +29,10 @@ public class UserServiceImpl implements UserService {
     private final static Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
-    UserMapper userMapper;
+    private UserMapper userMapper;
 
     @Autowired
-    IMService imService;
+    private IMService imService;
 
     @Override
     public String userLogin(String openId) {

@@ -45,6 +45,9 @@ public interface TaskService {
      */
     String imGroupAddRescuer(String taskId, String openId);
 
+
+    int setReceiver(String taskId, String receiverId);
+
     /**
      * 更新救援人员位置
      * @param taskId 任务Id
